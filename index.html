@@ -1,70 +1,63 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Omegle‑Lite (Text Chat)</title>
+  <title>Firebase Chat</title>
   <style>
-    :root{--bg:#0f1115;--fg:#eef2ff;--muted:#94a3b8;--panel:#151823;--accent:#60a5fa;--danger:#ef4444}
-    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,Segoe UI,Roboto,Helvetica,Arial}
-    .wrap{max-width:900px;margin:24px auto;padding:0 16px}
-    .card{background:var(--panel);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.25);overflow:hidden}
-    header{padding:18px 20px;border-bottom:1px solid #222}
-    header h1{margin:0;font-size:20px}
-    header small{color:var(--muted)}
-    .controls{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid #222}
-    button{border:0;border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer}
-    button.primary{background:var(--accent);color:#0b1020}
-    button.ghost{background:#1b2030;color:var(--fg)}
-    button.danger{background:var(--danger);color:#fff}
-    button:disabled{opacity:.5;cursor:not-allowed}
-    #status{margin-left:auto;color:var(--muted)}
-    .chat{height:55vh;overflow:auto;padding:16px;scroll-behavior:smooth}
-    .msg{max-width:70%;padding:10px 12px;border-radius:14px;margin:6px 0;white-space:pre-wrap;word-wrap:break-word}
-    .me{margin-left:auto;background:#0ea5e9;color:#00101a}
-    .them{background:#0e1a2a}
-    .sys{color:var(--muted);text-align:center;font-size:13px}
-    .input{display:flex;gap:8px;padding:12px;border-top:1px solid #222}
-    .input textarea{flex:1;resize:none;min-height:44px;max-height:120px;border-radius:12px;border:1px solid #2b3347;background:#0e1423;color:var(--fg);padding:10px}
-    .input button{min-width:90px}
-    a{color:var(--accent)}
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      margin: 0;
+    }
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      border-bottom: 1px solid #444;
+    }
+    #inputArea {
+      display: flex;
+      padding: 10px;
+      background: #222;
+    }
+    #messageInput {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      outline: none;
+    }
+    #sendBtn {
+      margin-left: 10px;
+      padding: 10px 20px;
+      background: #0d6efd;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <header>
-        <h1>Omegle‑Lite <small>random 1‑to‑1 text chat</small></h1>
-        <small>Demo app. Be kind. No personal data. Report abuse to the owner.</small>
-      </header>
-      <div class="controls">
-        <button id="startBtn" class="primary">Start</button>
-        <button id="nextBtn" class="ghost" disabled>Next</button>
-        <button id="stopBtn" class="danger" disabled>Stop</button>
-        <span id="status">Not connected</span>
-      </div>
-      <div id="chat" class="chat">
-        <div class="sys">Click <b>Start</b> to find a stranger…</div>
-      </div>
-      <div class="input">
-        <textarea id="text" placeholder="Type a message…" disabled></textarea>
-        <button id="sendBtn" class="primary" disabled>Send</button>
-      </div>
-    </div>
-    <p style="color:var(--muted);margin-top:14px">
-      <b>HOW TO DEPLOY:</b> Replace the Firebase config below, enable Anonymous Auth in Firebase, add your domain (including <code>localhost</code>) to Authorized Domains, and upload this single file to Firebase Hosting, GitHub Pages, or any static host.
-    </p>
+
+  <h2 style="text-align:center;">🔥 Firebase Chat</h2>
+  <div id="messages"></div>
+
+  <div id="inputArea">
+    <input type="text" id="messageInput" placeholder="Type a message...">
+    <button id="sendBtn">Send</button>
   </div>
 
-  <!-- Firebase SDKs (compat builds keep the code simple) -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
   <script>
-  // 1) PASTE YOUR FIREBASE CONFIG HERE (from Firebase Console > Project settings > General)
-  // Example skeleton (REPLACE the placeholder strings):
-  const firebaseConfig = {
+    // ✅ Your Firebase config (replace with your actual values)
+    const firebaseConfig = {
   apiKey: "AIzaSyCznpr69CxcD4GCZgyf7AIxSdOzGhWgXgA",
   authDomain: "omegle-ffb9d.firebaseapp.com",
   databaseURL: "https://omegle-ffb9d-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -74,151 +67,35 @@
   appId: "1:866990755446:web:7a9797767914e1c03ad957"
 };
 
-  // 2) Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.database();
+    // ✅ Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-  // --- Tiny client-side profanity filter (very basic) ---
-  const BAD_WORDS = ["fuck","shit","bitch","asshole","dick","pussy"]; // extend as you like
-  const clean = (t)=>{
-    let s=t; BAD_WORDS.forEach(w=>{const re=new RegExp(w,'ig'); s=s.replace(re,'***')}); return s;
-  }
+    // ✅ Send message
+    document.getElementById("sendBtn").onclick = function() {
+      const msg = document.getElementById("messageInput").value.trim();
+      if (msg !== "") {
+        db.ref("messages").push({
+          text: msg,
+          timestamp: Date.now()
+        });
+        document.getElementById("messageInput").value = "";
+      }
+    };
 
-  // UI elements
-  const chatEl = document.getElementById('chat');
-  const textEl = document.getElementById('text');
-  const sendBtn = document.getElementById('sendBtn');
-  const startBtn = document.getElementById('startBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  const stopBtn = document.getElementById('stopBtn');
-  const statusEl = document.getElementById('status');
+    // ✅ Listen for new messages
+    db.ref("messages").on("child_added", function(snapshot) {
+      const msg = snapshot.val();
+      const msgBox = document.getElementById("messages");
 
-  let me = { uid:null };
-  let roomId = null;
-  let roomRef = null;
-  let messagesRef = null;
-  let roomListener = null;
-  let msgListener = null;
+      const div = document.createElement("div");
+      div.textContent = msg.text;
+      msgBox.appendChild(div);
 
-  function sys(text){
-    const d = document.createElement('div'); d.className='sys'; d.textContent=text; chatEl.appendChild(d); chatEl.scrollTop = chatEl.scrollHeight;
-  }
-  function addMsg(text, mine){
-    const d = document.createElement('div'); d.className='msg ' + (mine?'me':'them'); d.textContent=text; chatEl.appendChild(d); chatEl.scrollTop = chatEl.scrollHeight;
-  }
-  function setUI(state){
-    if(state==='idle'){
-      startBtn.disabled = false; nextBtn.disabled = true; stopBtn.disabled = true; textEl.disabled = true; sendBtn.disabled = true; statusEl.textContent='Not connected';
-    } else if(state==='matching'){
-      startBtn.disabled = true; nextBtn.disabled = true; stopBtn.disabled = false; textEl.disabled = true; sendBtn.disabled = true; statusEl.textContent='Looking for a partner…';
-    } else if(state==='chatting'){
-      startBtn.disabled = true; nextBtn.disabled = false; stopBtn.disabled = false; textEl.disabled = false; sendBtn.disabled = false; statusEl.textContent='Connected';
-    }
-  }
-
-  // Sign in anonymously
-  auth.signInAnonymously().then(cred=>{
-    me.uid = cred.user.uid;
-    db.ref(`presence/${me.uid}`).onDisconnect().remove();
-    db.ref(`presence/${me.uid}`).set({online:true,ts:firebase.database.ServerValue.TIMESTAMP});
-  }).catch(err=>{
-    sys('Auth error: '+err.message);
-  });
-
-  // Matchmaking logic (naïve but works for small traffic)
-  async function findPartner(){
-    setUI('matching');
-    sys('Searching for a stranger…');
-
-    // Mark myself waiting
-    const myWaitRef = db.ref(`waiting/${me.uid}`);
-    await myWaitRef.set({ts:firebase.database.ServerValue.TIMESTAMP});
-    myWaitRef.onDisconnect().remove();
-
-    // Try to grab any other waiter
-    const snap = await db.ref('waiting').get();
-    let partnerId = null;
-    snap.forEach(ch=>{
-      const uid = ch.key; if(uid !== me.uid && !partnerId) partnerId = uid;
+      // Auto-scroll to bottom
+      msgBox.scrollTop = msgBox.scrollHeight;
     });
-
-    if(partnerId){
-      // Create a room for both (atomic multi-path update)
-      const newRoomKey = db.ref('rooms').push().key;
-      const updates = {};
-      updates[`rooms/${newRoomKey}/members/${me.uid}`] = true;
-      updates[`rooms/${newRoomKey}/members/${partnerId}`] = true;
-      updates[`rooms/${newRoomKey}/createdAt`] = firebase.database.ServerValue.TIMESTAMP;
-      updates[`users/${me.uid}/room`] = newRoomKey;
-      updates[`users/${partnerId}/room`] = newRoomKey;
-      updates[`waiting/${me.uid}`] = null;
-      updates[`waiting/${partnerId}`] = null;
-      await db.ref().update(updates);
-      joinRoom(newRoomKey);
-    } else {
-      // Wait to be assigned by the next user who comes
-      db.ref(`users/${me.uid}/room`).on('value', s=>{
-        const r = s.val();
-        if(r){ db.ref(`users/${me.uid}/room`).off(); joinRoom(r); }
-      });
-    }
-  }
-
-  function leaveRoom(){
-    if(!roomId) return;
-    // Mark room ended for me
-    db.ref(`rooms/${roomId}/ended/${me.uid}`).set(true);
-    // Remove my user->room mapping
-    db.ref(`users/${me.uid}/room`).remove();
-
-    if(roomListener){ roomRef.off('value', roomListener); roomListener = null; }
-    if(msgListener){ messagesRef.off('child_added', msgListener); msgListener = null; }
-
-    roomId = null; roomRef = null; messagesRef = null;
-    sys('You left the chat.');
-    setUI('idle');
-  }
-
-  function joinRoom(id){
-    roomId = id; roomRef = db.ref(`rooms/${roomId}`); messagesRef = db.ref(`rooms/${roomId}/messages`);
-    setUI('chatting');
-    chatEl.innerHTML = '';
-    sys('Connected! Say hi.');
-
-    // Listen for room end / partner leave
-    roomListener = roomRef.child('ended').on('value', s=>{
-      const ended = s.val()||{};
-      const partnerLeft = Object.keys(ended).some(uid=>uid !== me.uid && ended[uid]);
-      if(partnerLeft){ sys('Stranger disconnected.'); setUI('idle'); }
-    });
-
-    // Listen for incoming messages
-    msgListener = messagesRef.limitToLast(200).on('child_added', s=>{
-      const m = s.val(); if(!m) return; if(m.from === me.uid) return; addMsg(m.text,false);
-    });
-  }
-
-  // Send a message
-  async function send(){
-    let t = textEl.value.trim(); if(!t) return; t = clean(t);
-    textEl.value=''; addMsg(t,true);
-    await messagesRef.push({from:me.uid,text:t,ts:firebase.database.ServerValue.TIMESTAMP});
-  }
-
-  // Buttons
-  startBtn.onclick = ()=> findPartner();
-  nextBtn.onclick = ()=>{ leaveRoom(); findPartner(); };
-  stopBtn.onclick = ()=>{ leaveRoom(); };
-  sendBtn.onclick = ()=> send();
-  textEl.addEventListener('keydown', (e)=>{
-    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
-  });
-
-  // Warn on unload to tidy presence
-  window.addEventListener('beforeunload', ()=>{
-    if(roomId){ db.ref(`rooms/${roomId}/ended/${me.uid}`).set(true); }
-  });
   </script>
+
 </body>
 </html>
