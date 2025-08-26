@@ -1,101 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Firebase Chat</title>
+  <meta charset="UTF-8">
+  <title>Simple Chat</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      margin: 0;
-    }
-    #messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 10px;
-      border-bottom: 1px solid #444;
-    }
-    #inputArea {
-      display: flex;
-      padding: 10px;
-      background: #222;
-    }
-    #messageInput {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 4px;
-      outline: none;
-    }
-    #sendBtn {
-      margin-left: 10px;
-      padding: 10px 20px;
-      background: #0d6efd;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #messages { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; }
+    #messageInput { width: 80%; padding: 5px; }
+    #sendBtn { padding: 6px 12px; }
   </style>
 </head>
 <body>
-
-  <h2 style="text-align:center;">🔥 Firebase Chat</h2>
+  <h2>Chat Room</h2>
   <div id="messages"></div>
-
-  <div id="inputArea">
-    <input type="text" id="messageInput" placeholder="Type a message...">
-    <button id="sendBtn">Send</button>
-  </div>
+  <input type="text" id="messageInput" placeholder="Type a message..." />
+  <button id="sendBtn">Send</button>
 
   <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-database.js"></script>
 
   <script>
-    // ✅ Your Firebase config (replace with your actual values)
-    const firebaseConfig = {
-  apiKey: "AIzaSyCznpr69CxcD4GCZgyf7AIxSdOzGhWgXgA",
+    // 🔹 Replace with your own Firebase config
+   const firebaseConfig = {
+  apiKey: "AIzaSyCznpr69CxkD4GCZgyf7AIxSDozGhWgXgA",
   authDomain: "omegle-ffb9d.firebaseapp.com",
   databaseURL: "https://omegle-ffb9d-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "omegle-ffb9d",
-  storageBucket: "omegle-ffb9d.firebasestorage.app",
+  storageBucket: "omegle-ffb9d.appspot.com",
   messagingSenderId: "866990755446",
   appId: "1:866990755446:web:7a9797767914e1c03ad957"
 };
 
-    // ✅ Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // ✅ Send message
-    document.getElementById("sendBtn").onclick = function() {
-      const msg = document.getElementById("messageInput").value.trim();
-      if (msg !== "") {
-        db.ref("messages").push({
-          text: msg,
+    const messagesRef = db.ref("messages");
+
+    // 🔹 Send message
+    document.getElementById("sendBtn").addEventListener("click", () => {
+      const text = document.getElementById("messageInput").value;
+      if (text.trim() !== "") {
+        messagesRef.push({
+          text: text,
           timestamp: Date.now()
         });
         document.getElementById("messageInput").value = "";
       }
-    };
+    });
 
-    // ✅ Listen for new messages
-    db.ref("messages").on("child_added", function(snapshot) {
+    // 🔹 Listen for new messages
+    messagesRef.on("child_added", (snapshot) => {
       const msg = snapshot.val();
-      const msgBox = document.getElementById("messages");
-
       const div = document.createElement("div");
       div.textContent = msg.text;
-      msgBox.appendChild(div);
-
-      // Auto-scroll to bottom
-      msgBox.scrollTop = msgBox.scrollHeight;
+      document.getElementById("messages").appendChild(div);
     });
   </script>
-
 </body>
 </html>
